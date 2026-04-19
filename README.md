@@ -41,11 +41,11 @@ The system provides instant feedback, tracks attempts, and improves logical thin
 ---
 
 ## 📷 Screenshots
-
+<img width="1366" height="725" alt="Home" src="https://github.com/user-attachments/assets/4ef0cd16-38ab-46f7-ba63-cad0e3c2b3c6" />
 <img width="1366" height="712" alt="Wining" src="https://github.com/user-attachments/assets/e37e233a-ba83-4b6d-869e-e5c3018d1296" />
 <img width="1366" height="716" alt="Loosing" src="https://github.com/user-attachments/assets/a04cd727-e96f-4b2e-b8cd-e9682d8c3f45" />
 <img width="1366" height="725" alt="Leaderboard" src="https://github.com/user-attachments/assets/d6ff77f1-409c-4b48-8fe7-d92a16760c44" />
-<img width="1366" height="725" alt="Home" src="https://github.com/user-attachments/assets/4ef0cd16-38ab-46f7-ba63-cad0e3c2b3c6" />
+
 
 
 ---
