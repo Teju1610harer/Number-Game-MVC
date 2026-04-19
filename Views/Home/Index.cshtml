@@ -1,0 +1,323 @@
+﻿@{
+    ViewBag.Title = "AAA Number Game";
+}
+
+<div class="game-area">
+
+    <!-- GAME HUD -->
+    <div class="hud">
+
+        <div class="hud-item">
+            ❤️ Lives: <span id="life">10</span>
+        </div>
+
+        <div class="hud-item">
+            ⭐ Level: <span id="levelCount">1</span>
+        </div>
+
+        <div class="hud-item">
+            🏆 Score: <span id="scoreCount">0</span>
+        </div>
+
+        <div class="hud-item">
+            🔥 Combo: <span id="combo">0</span>
+        </div>
+
+    </div>
+
+    <!-- GAME CARD -->
+    <div class="game-card">
+
+        <h2>🎯 Guess The Number</h2>
+
+        <p id="rangeText" class="text-muted">
+            Guess between 1 - 100
+        </p>
+
+        <input id="playerName"
+               class="form-control mb-3"
+               placeholder="Enter Player Name" />
+
+        <input id="guessInput"
+               type="number"
+               class="form-control mb-3"
+               placeholder="Enter Guess" />
+
+        <button id="guessBtn" class="btn btn-primary w-100">
+            Submit Guess
+        </button>
+
+        <div id="resultBox" class="mt-3"></div>
+
+        <!-- XP BAR -->
+        <div class="progress mt-4">
+            <div id="xpBar"
+                 class="progress-bar"
+                 style="width:0%">
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<!-- LEVEL UP MODAL -->
+<div id="levelUpModal" class="game-modal">
+    <div class="modal-box">
+        <h1>🔥 LEVEL UP 🔥</h1>
+        <p>Next Challenge Started!</p>
+    </div>
+</div>
+
+<!-- GAME OVER MODAL -->
+<div id="gameOverModal" class="game-modal">
+    <div class="modal-box">
+        <h1>💀 GAME OVER</h1>
+        <p id="finalScore"></p>
+        <button onclick="location.reload()" class="btn btn-danger">
+            Play Again
+        </button>
+    </div>
+</div>
+<div id="achievement" class="game-modal">
+    <div class="modal-box">
+        <h2>🏅 Achievement Unlocked!</h2>
+        <p id="achievementText"></p>
+    </div>
+</div>
+
+<style>
+
+/* ===== CENTER ===== */
+.game-area{
+height:90vh;
+display:flex;
+flex-direction:column;
+justify-content:center;
+align-items:center;
+}
+
+/* ===== HUD ===== */
+.hud{
+display:flex;
+gap:40px;
+margin-bottom:20px;
+font-weight:600;
+}
+
+.hud-item{
+background:#ffffff;
+padding:10px 20px;
+border-radius:12px;
+box-shadow:0 4px 12px rgba(0,0,0,.1);
+}
+
+/* ===== CARD ===== */
+.game-card{
+width:420px;
+background:#ffffff;
+padding:30px;
+border-radius:16px;
+box-shadow:0 10px 25px rgba(0,0,0,.15);
+text-align:center;
+}
+
+/* ===== INPUT ===== */
+.form-control{
+height:45px;
+border-radius:10px;
+}
+
+/* ===== MODALS ===== */
+.game-modal{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,.7);
+display:none;
+justify-content:center;
+align-items:center;
+z-index:9999;
+}
+
+.modal-box{
+background:white;
+padding:40px;
+border-radius:15px;
+text-align:center;
+animation:pop .5s;
+}
+
+@@keyframes pop{
+from{transform:scale(.5);opacity:0;}
+to{transform:scale(1);opacity:1;}
+}
+
+
+/* ===== SUCCESS EFFECT ===== */
+.win-effect{
+animation:winGlow .6s;
+}
+
+@@keyframes winGlow{
+0%{transform:scale(.9);background:#d4edda;}
+50%{transform:scale(1.05);}
+100%{transform:scale(1);}
+}
+
+/* ===== WRONG SHAKE ===== */
+.wrong-effect{
+animation:shake .4s;
+}
+
+@@keyframes shake{
+0%{transform:translateX(0);}
+25%{transform:translateX(-6px);}
+50%{transform:translateX(6px);}
+75%{transform:translateX(-6px);}
+100%{transform:translateX(0);}
+}
+</style>
+
+<script>
+
+    document.getElementById("guessBtn")
+        .addEventListener("click", function () {
+
+            let player = playerName.value;
+            let guess = guessInput.value;
+
+            if (player === "") {
+                alert("Enter Name");
+                return;
+            }
+
+            if (guess === "") {
+                alert("Enter Guess");
+                return;
+            }
+
+            fetch("/Home/PlayGame", {
+                method: "POST",
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    PlayerName: player,
+                    GuessNumber: guess
+                })
+            })
+                .then(r => r.json())
+                .then(data => {
+
+                    /* =======================
+                       RESULT MESSAGE
+                    =======================*/
+                    resultBox.innerHTML =
+                        `<div class="alert ${data.win ? 'alert-success' : 'alert-warning'}">
+            ${data.msg}
+        </div>`;
+
+
+                    /* =======================
+                       HUD UPDATE
+                    =======================*/
+
+                    levelCount.innerText = data.level;
+                    scoreCount.innerText = data.score;
+                    combo.innerText = data.combo;
+
+                    // ❤️ Lives system
+                    let livesLeft = data.maxAttempts - data.attempt;
+                    life.innerText = livesLeft;
+
+
+                    /* =======================
+                       RANGE UPDATE ⭐ FIX
+                    =======================*/
+
+                    rangeText.innerText =
+                        "Guess between 1 - " + data.range;
+
+
+                    /* =======================
+                       CLEAR INPUT ⭐ FIX
+                    =======================*/
+                    guessInput.value = "";
+                    guessInput.focus();
+
+
+                    /* =======================
+                       XP BAR ⭐ FIX
+                    =======================*/
+
+                    let percent =
+                        (data.attempt / data.maxAttempts) * 100;
+
+                    xpBar.style.width = percent + "%";
+
+
+                    /* =======================
+                       LEVEL UP MODAL
+                    =======================*/
+
+                    if (data.levelUp) {
+
+                        levelUpModal.style.display = "flex";
+
+                        setTimeout(() => {
+                            levelUpModal.style.display = "none";
+                        }, 1800);
+                    }
+
+
+                    /* =======================
+                       GAME OVER
+                    =======================*/
+
+                    if (data.gameOver) {
+
+                        finalScore.innerText =
+                            "Final Score : " + data.score;
+
+                        gameOverModal.style.display = "flex";
+                    }
+
+                });
+        });
+
+    if (data.win) {
+        document.querySelector(".game-card")
+            .classList.add("win-effect");
+
+        setTimeout(() => {
+            document.querySelector(".game-card")
+                .classList.remove("win-effect");
+        }, 600);
+    }
+    else {
+        document.querySelector(".game-card")
+            .classList.add("wrong-effect");
+
+        setTimeout(() => {
+            document.querySelector(".game-card")
+                .classList.remove("wrong-effect");
+        }, 400);
+    }
+
+    if (data.score >= 500 && !window.ach1) {
+        achievementText.innerText = "Score Master!";
+        achievement.style.display = "flex";
+        window.ach1 = true;
+
+        setTimeout(() => {
+            achievement.style.display = "none";
+        }, 2000);
+    }
+
+    if (data.win)
+        winSound.play();
+    else
+        failSound.play();
+
+</script>
